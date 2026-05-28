@@ -377,14 +377,39 @@
   }
 
   .below-threshold-note {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 16px;
-    padding: 8px;
-    background: var(--card);
+    margin-top: 20px;
+    padding: 12px 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .below-threshold-title {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .below-threshold-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .below-threshold-item {
+    font-size: 12px;
+    color: #7f1d1d;
+    background: var(--danger-light);
+    border: 1px solid #fecaca;
+    border-radius: 999px;
+    padding: 4px 8px;
+    line-height: 1.2;
   }
 
   .method-note {
@@ -568,7 +593,9 @@ function renderHemicycle(sorted) {
   const mx2 = cx + (outerR + 6) * Math.cos(majAngle);
   const my2 = cy - (outerR + 6) * Math.sin(majAngle);
   svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
-    stroke="var(--text)" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>`;
+    stroke="#ffffff" stroke-width="5" opacity="0.9"/>`;
+  svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
+    stroke="var(--text)" stroke-width="2.8" stroke-dasharray="6,3" opacity="0.95"/>`;
 
   svg += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" dominant-baseline="auto"
     fill="var(--text)" font-family="Inter,sans-serif" font-size="16" font-weight="700">${totalSeats}</text>`;
@@ -663,12 +690,25 @@ function showResults() {
 
   const belowNote = document.getElementById('belowNote');
   if (belowParties.length > 0) {
-    const names = belowParties.map(p => {
+    belowNote.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'below-threshold-title';
+    title.textContent = 'Poniżej progu';
+    belowNote.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'below-threshold-list';
+
+    belowParties.forEach(p => {
       const t = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
-      return `${shortName(p.name)} (${p.pct}% < ${t}%)`;
-    }).join(', ');
+      const item = document.createElement('span');
+      item.className = 'below-threshold-item';
+      item.textContent = `${shortName(p.name)} (${p.pct}% < ${t}%)`;
+      list.appendChild(item);
+    });
+
+    belowNote.appendChild(list);
     belowNote.style.display = 'block';
-    belowNote.textContent = 'Poniżej progu: ' + names;
   } else {
     belowNote.style.display = 'none';
   }
