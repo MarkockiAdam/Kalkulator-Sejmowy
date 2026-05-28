@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kalkulator Sejmowy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #6b7280;
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --success: #10b981;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  header {
+    text-align: center;
+    padding: 24px 0 20px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .party-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .party-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow);
+    transition: opacity 0.2s, border-color 0.2s;
+  }
+
+  .party-card.below-threshold {
+    opacity: 0.45;
+  }
+
+  .party-color {
+    width: 6px;
+    height: 40px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .party-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .party-top-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .party-name {
+    font-size: 15px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 0;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .party-name:focus {
+    border-bottom: 1px solid var(--accent);
+  }
+
+  .coalition-badge {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--accent-light);
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .coalition-badge:hover {
+    filter: brightness(0.95);
+  }
+
+  .coalition-badge.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .party-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .threshold-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .pct-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+  }
+
+  .pct-input {
+    width: 52px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    text-align: right;
+    border: none;
+    background: none;
+    color: var(--text);
+    outline: none;
+    padding: 0;
+    -moz-appearance: textfield;
+  }
+
+  .pct-input::-webkit-inner-spin-button,
+  .pct-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .pct-input:focus {
+    color: var(--accent);
+  }
+
+  .pct-symbol {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .remove-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: var(--danger-light);
+    color: var(--danger);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .remove-btn:hover {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    background: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .total-bar {
+    margin: 16px 0;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+  }
+
+  .total-bar .label { color: var(--text-secondary); }
+
+  .total-bar .value {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .total-bar .value.over { color: var(--danger); }
+
+  .results-section {
+    margin-top: 24px;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+
+  .results-header .total-seats {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+
+  .result-name {
+    font-size: 12px;
+    font-weight: 500;
+    width: 80px;
+    flex-shrink: 0;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .result-bar-wrap {
+    flex: 1;
+    height: 28px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .result-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+  }
+
+  .result-bar-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .result-seats {
+    font-size: 15px;
+    font-weight: 700;
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .result-pct {
+    font-size: 11px;
+    color: var(--text-secondary);
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .hemicycle-wrap {
+    margin: 16px 0 20px;
+    text-align: center;
+  }
+
+  .hemicycle-wrap svg {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+  }
+
+  .show-results-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .show-results-btn:hover {
+    filter: brightness(0.9);
+  }
+
+  .show-results-btn:disabled {
+    background: var(--border);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    filter: none;
+  }
+
+  .below-threshold-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 16px;
+    padding: 8px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .method-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .result-bar { transition: none; }
+    .party-card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Kalkulator Sejmowy</h1>
+    <p>Prognoza podziału 460 mandatów metodą D'Hondta</p>
+  </header>
+
+  <div class="section-label">Partie</div>
+  <div class="party-list" id="partyList"></div>
+  <button class="add-btn" id="addPartyBtn">+ Dodaj partie</button>
+
+  <div class="total-bar">
+    <span class="label">Suma głosów</span>
+    <span class="value" id="totalPct">0%</span>
+  </div>
+
+  <button class="show-results-btn" id="showResultsBtn">Pokaż wyniki</button>
+
+  <div class="results-section" id="resultsSection" style="display:none">
+    <div class="results-header">
+      <div class="section-label" style="margin-bottom:0">Wyniki</div>
+      <div class="total-seats" id="totalSeats">460 mandatów</div>
+    </div>
+    <div class="hemicycle-wrap" id="hemicycle"></div>
+    <div id="resultsChart"></div>
+    <div class="below-threshold-note" id="belowNote" style="display:none"></div>
+  </div>
+
+  <div class="method-note">
+    Metoda D'Hondta &middot; Prog 5% (partie) / 8% (koalicje)
+  </div>
+</div>
+
+<script>
+const TOTAL_SEATS = 460;
+const PARTY_THRESHOLD = 5;
+const COALITION_THRESHOLD = 8;
+
+const PARTY_COLORS = {
+  'PiS': '#263672',
+  'Koalicja Obywatelska': '#F58220',
+  'Konfederacja': '#1B1464',
+  'Konfederacja Korony Polskiej': '#8B6914',
+  'Lewica': '#E53935',
+  'Razem': '#7B1FA2',
+  'PSL': '#4CAF50',
+  'Trzecia Droga': '#2E7D32',
+  'Centrum': '#00838F',
+};
+
+const SHORT_NAMES = {
+  'Koalicja Obywatelska': 'KO',
+  'Konfederacja Korony Polskiej': 'KKP',
+  'Trzecia Droga': 'TD',
+};
+
+function shortName(name) {
+  return SHORT_NAMES[name] || name;
+}
+
+const DEFAULT_COLORS = [
+  '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B',
+  '#6366F1', '#84CC16', '#06B6D4', '#EF4444',
+];
+
+let colorIndex = 0;
+
+function getColor(name) {
+  if (PARTY_COLORS[name]) return PARTY_COLORS[name];
+  return DEFAULT_COLORS[colorIndex++ % DEFAULT_COLORS.length];
+}
+
+let parties = [
+  { name: 'PiS', pct: 30, coalition: false, color: PARTY_COLORS['PiS'] },
+  { name: 'Koalicja Obywatelska', pct: 25, coalition: false, color: PARTY_COLORS['Koalicja Obywatelska'] },
+  { name: 'Konfederacja', pct: 12, coalition: false, color: PARTY_COLORS['Konfederacja'] },
+  { name: 'Konfederacja Korony Polskiej', pct: 3, coalition: false, color: PARTY_COLORS['Konfederacja Korony Polskiej'] },
+  { name: 'Lewica', pct: 6, coalition: false, color: PARTY_COLORS['Lewica'] },
+  { name: 'Razem', pct: 3, coalition: false, color: PARTY_COLORS['Razem'] },
+  { name: 'PSL', pct: 4, coalition: false, color: PARTY_COLORS['PSL'] },
+  { name: 'Trzecia Droga', pct: 5, coalition: true, color: PARTY_COLORS['Trzecia Droga'] },
+  { name: 'Centrum', pct: 2, coalition: false, color: PARTY_COLORS['Centrum'] },
+];
+
+function dhondt(validParties, totalSeats) {
+  const seats = new Map();
+  validParties.forEach(p => seats.set(p.name, 0));
+
+  for (let i = 0; i < totalSeats; i++) {
+    let maxQuotient = -1;
+    let winner = null;
+    for (const p of validParties) {
+      const quotient = p.pct / (seats.get(p.name) + 1);
+      if (quotient > maxQuotient) {
+        maxQuotient = quotient;
+        winner = p.name;
+      }
+    }
+    if (winner) seats.set(winner, seats.get(winner) + 1);
+  }
+
+  return seats;
+}
+
+function renderHemicycle(sorted) {
+  const container = document.getElementById('hemicycle');
+  const majority = Math.floor(TOTAL_SEATS / 2) + 1;
+
+  if (sorted.length === 0) { container.innerHTML = ''; return; }
+
+  const totalSeats = sorted.reduce((s, [, v]) => s + v, 0);
+  if (totalSeats === 0) { container.innerHTML = ''; return; }
+
+  const W = 400, H = 215;
+  const cx = W / 2, cy = H - 5;
+  const outerR = 195, innerR = 95, gap = 0.008;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  let currentAngle = Math.PI;
+
+  for (const [name, seats] of sorted) {
+    if (seats === 0) continue;
+    const party = parties.find(p => p.name === name);
+    const color = party?.color || '#888';
+    const sweep = (seats / totalSeats) * Math.PI;
+
+    const a1 = currentAngle - gap;
+    const a2 = currentAngle - sweep + gap;
+
+    if (a1 <= a2) { currentAngle -= sweep; continue; }
+
+    const ox1 = cx + outerR * Math.cos(a1);
+    const oy1 = cy - outerR * Math.sin(a1);
+    const ox2 = cx + outerR * Math.cos(a2);
+    const oy2 = cy - outerR * Math.sin(a2);
+    const ix1 = cx + innerR * Math.cos(a2);
+    const iy1 = cy - innerR * Math.sin(a2);
+    const ix2 = cx + innerR * Math.cos(a1);
+    const iy2 = cy - innerR * Math.sin(a1);
+
+    const large = sweep - 2 * gap > Math.PI ? 1 : 0;
+
+    const d = [
+      `M ${ox1} ${oy1}`,
+      `A ${outerR} ${outerR} 0 ${large} 1 ${ox2} ${oy2}`,
+      `L ${ix1} ${iy1}`,
+      `A ${innerR} ${innerR} 0 ${large} 0 ${ix2} ${iy2}`,
+      'Z'
+    ].join(' ');
+
+    svg += `<path d="${d}" fill="${color}"/>`;
+
+    currentAngle -= sweep;
+  }
+
+  const majAngle = Math.PI - (majority / totalSeats) * Math.PI;
+  const mx1 = cx + (innerR - 6) * Math.cos(majAngle);
+  const my1 = cy - (innerR - 6) * Math.sin(majAngle);
+  const mx2 = cx + (outerR + 6) * Math.cos(majAngle);
+  const my2 = cy - (outerR + 6) * Math.sin(majAngle);
+  svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
+    stroke="var(--text)" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>`;
+
+  svg += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" dominant-baseline="auto"
+    fill="var(--text)" font-family="Inter,sans-serif" font-size="16" font-weight="700">${totalSeats}</text>`;
+  svg += `<text x="${cx}" y="${cy + 7}" text-anchor="middle" dominant-baseline="auto"
+    fill="var(--text-secondary)" font-family="Inter,sans-serif" font-size="9">mandatów</text>`;
+
+  svg += '</svg>';
+  container.innerHTML = svg;
+}
+
+function hideResults() {
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('showResultsBtn').style.display = '';
+}
+
+function updateTotal() {
+  const total = parties.reduce((s, p) => s + p.pct, 0);
+  const totalEl = document.getElementById('totalPct');
+  totalEl.textContent = total.toFixed(1) + '%';
+  totalEl.classList.toggle('over', total > 100);
+
+  const btn = document.getElementById('showResultsBtn');
+  if (total > 100) {
+    btn.disabled = true;
+    btn.textContent = 'Suma przekracza 100%';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Pokaż wyniki';
+  }
+
+  parties.forEach((p, i) => {
+    const card = document.querySelectorAll('.party-card')[i];
+    if (card) {
+      const threshold = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
+      card.classList.toggle('below-threshold', p.pct > 0 && p.pct < threshold);
+    }
+  });
+}
+
+function showResults() {
+  const total = parties.reduce((s, p) => s + p.pct, 0);
+  if (total > 100) return;
+
+  const validParties = parties.filter(p => {
+    const threshold = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
+    return p.pct >= threshold;
+  });
+
+  const belowParties = parties.filter(p => {
+    const threshold = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
+    return p.pct > 0 && p.pct < threshold;
+  });
+
+  const seats = validParties.length > 0 ? dhondt(validParties, TOTAL_SEATS) : new Map();
+  const assignedSeats = Array.from(seats.values()).reduce((a, b) => a + b, 0);
+
+  document.getElementById('totalSeats').textContent = assignedSeats + ' / ' + TOTAL_SEATS + ' mandatów';
+
+  const sorted = [...seats.entries()].sort((a, b) => b[1] - a[1]);
+
+  renderHemicycle(sorted);
+
+  const chart = document.getElementById('resultsChart');
+  chart.innerHTML = '';
+
+  const maxSeats = Math.max(...Array.from(seats.values()), 1);
+
+  for (const [name, s] of sorted) {
+    const party = parties.find(p => p.name === name);
+    const pctOfTotal = validParties.length > 0
+      ? ((s / TOTAL_SEATS) * 100).toFixed(1)
+      : '0.0';
+
+    const row = document.createElement('div');
+    row.className = 'result-row';
+
+    const barWidth = maxSeats > 0 ? (s / maxSeats) * 100 : 0;
+    const sn = shortName(name);
+
+    row.innerHTML = `
+      <div class="result-name" title="${name}">${sn}</div>
+      <div class="result-bar-wrap">
+        <div class="result-bar" style="width:${barWidth}%;background:${party?.color || '#888'}">
+          ${s > 15 ? `<span class="result-bar-label">${s}</span>` : ''}
+        </div>
+      </div>
+      <div class="result-seats">${s}</div>
+      <div class="result-pct">${pctOfTotal}%</div>
+    `;
+    chart.appendChild(row);
+  }
+
+  const belowNote = document.getElementById('belowNote');
+  if (belowParties.length > 0) {
+    const names = belowParties.map(p => {
+      const t = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
+      return `${shortName(p.name)} (${p.pct}% < ${t}%)`;
+    }).join(', ');
+    belowNote.style.display = 'block';
+    belowNote.textContent = 'Poniżej progu: ' + names;
+  } else {
+    belowNote.style.display = 'none';
+  }
+
+  document.getElementById('resultsSection').style.display = '';
+  document.getElementById('showResultsBtn').style.display = 'none';
+  document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function render() {
+  const list = document.getElementById('partyList');
+  list.innerHTML = '';
+
+  parties.forEach((party, i) => {
+    const card = document.createElement('div');
+    card.className = 'party-card';
+
+    const threshold = party.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
+    if (party.pct > 0 && party.pct < threshold) {
+      card.classList.add('below-threshold');
+    }
+
+    card.innerHTML = `
+      <div class="party-color" style="background:${party.color}"></div>
+      <div class="party-info">
+        <div class="party-top-row">
+          <input class="party-name" type="text" value="${party.name}" data-idx="${i}" />
+          <div class="coalition-badge ${party.coalition ? 'active' : ''}" data-idx="${i}" title="Koalicja = prog 8%">
+            ${party.coalition ? 'Koalicja' : 'Partia'}
+          </div>
+        </div>
+        <div class="party-bottom-row">
+          <span class="threshold-label">prog ${threshold}%</span>
+          <div class="pct-input-wrap">
+            <input class="pct-input" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="${party.pct}" data-idx="${i}" />
+            <span class="pct-symbol">%</span>
+          </div>
+        </div>
+      </div>
+      <button class="remove-btn" data-idx="${i}" title="Usun">&times;</button>
+    `;
+
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.pct-input').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      const val = parseFloat(e.target.value) || 0;
+      parties[idx].pct = Math.min(100, Math.max(0, val));
+      hideResults();
+      updateTotal();
+    });
+
+    input.addEventListener('focus', (e) => {
+      e.target.select();
+    });
+  });
+
+  list.querySelectorAll('.party-name').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      parties[idx].name = e.target.value.trim() || 'Partia';
+      hideResults();
+    });
+  });
+
+  list.querySelectorAll('.coalition-badge').forEach(badge => {
+    badge.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      parties[idx].coalition = !parties[idx].coalition;
+      hideResults();
+      render();
+    });
+  });
+
+  list.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      parties.splice(idx, 1);
+      hideResults();
+      render();
+    });
+  });
+
+  updateTotal();
+}
+
+document.getElementById('showResultsBtn').addEventListener('click', () => {
+  showResults();
+});
+
+document.getElementById('addPartyBtn').addEventListener('click', () => {
+  const newColor = getColor('');
+  parties.push({ name: 'Nowa partia', pct: 0, coalition: false, color: newColor });
+  hideResults();
+  render();
+  const inputs = document.querySelectorAll('.party-name');
+  const last = inputs[inputs.length - 1];
+  if (last) { last.focus(); last.select(); }
+});
+
+render();
+</script>
+</body>
+</html>
