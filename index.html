@@ -442,6 +442,7 @@ const COALITION_THRESHOLD = 8;
 
 const PARTY_COLORS = {
   'PiS': '#263672',
+  'PIS': '#263672',
   'KO': '#F58220',
   'Koalicja Obywatelska': '#F58220',
   'Konfederacja': '#1B1464',
@@ -451,6 +452,7 @@ const PARTY_COLORS = {
   'Razem': '#7B1FA2',
   'PSL': '#4CAF50',
   'Trzecia Droga': '#2E7D32',
+  'PL2050': '#2E7D32',
   'Centrum': '#00838F',
 };
 
@@ -477,15 +479,15 @@ function getColor(name) {
 }
 
 let parties = [
-  { name: 'PiS', pct: 30, coalition: false, color: PARTY_COLORS['PiS'] },
-  { name: 'KO', pct: 25, coalition: false, color: PARTY_COLORS['KO'] },
-  { name: 'Konfederacja', pct: 12, coalition: false, color: PARTY_COLORS['Konfederacja'] },
-  { name: 'KKP', pct: 3, coalition: false, color: PARTY_COLORS['KKP'] },
+  { name: 'KO', pct: 32, coalition: false, color: PARTY_COLORS['KO'] },
+  { name: 'PIS', pct: 24, coalition: false, color: PARTY_COLORS['PIS'] },
+  { name: 'Konfederacja', pct: 13, coalition: false, color: PARTY_COLORS['Konfederacja'] },
+  { name: 'KKP', pct: 8, coalition: false, color: PARTY_COLORS['KKP'] },
   { name: 'Lewica', pct: 6, coalition: false, color: PARTY_COLORS['Lewica'] },
-  { name: 'Razem', pct: 3, coalition: false, color: PARTY_COLORS['Razem'] },
-  { name: 'PSL', pct: 4, coalition: false, color: PARTY_COLORS['PSL'] },
-  { name: 'Trzecia Droga', pct: 5, coalition: true, color: PARTY_COLORS['Trzecia Droga'] },
-  { name: 'Centrum', pct: 2, coalition: false, color: PARTY_COLORS['Centrum'] },
+  { name: 'Razem', pct: 4, coalition: false, color: PARTY_COLORS['Razem'] },
+  { name: 'PSL', pct: 3, coalition: false, color: PARTY_COLORS['PSL'] },
+  { name: 'PL2050', pct: 1, coalition: false, color: PARTY_COLORS['PL2050'] },
+  { name: 'Centrum', pct: 1, coalition: false, color: PARTY_COLORS['Centrum'] },
 ];
 
 function dhondt(validParties, totalSeats) {
