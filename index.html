@@ -547,8 +547,6 @@ const TOTAL_SEATS = 460;
 const PARTY_THRESHOLD = 5;
 const COALITION_THRESHOLD = 8;
 const MAJORITY_OPTIONS = [
-  { key: 'm431', label: '431', seats: 431 },
-  { key: 'simple', label: 'Zwykła', seats: 231 },
   { key: 'absolute', label: 'Bezwzględna', seats: 231 },
   { key: 'threeFifths', label: '3/5', seats: 276 },
   { key: 'twoThirds', label: '2/3', seats: 307 },
@@ -587,7 +585,7 @@ const DEFAULT_COLORS = [
 ];
 
 let colorIndex = 0;
-let selectedMajorityKey = 'm431';
+let selectedMajorityKey = 'absolute';
 let lastSortedResults = [];
 
 function getColor(name) {
@@ -723,16 +721,7 @@ function renderMajorityInfo() {
     <div class="below-threshold-title">Rodzaje większości</div>
     <div class="majority-info-list">
       <div class="majority-info-item">
-        <div class="majority-info-item-title">1. Większość zwykła</div>
-        <p>Więcej głosów „za” niż „przeciw” (wstrzymujące się nie liczą się), przy kworum co najmniej połowy posłów.</p>
-        <ul>
-          <li>Uchwalanie ustaw zwykłych.</li>
-          <li>Podejmowanie większości uchwał.</li>
-          <li>Wybór niektórych organów pomocniczych (np. Prezesa IPN).</li>
-        </ul>
-      </div>
-      <div class="majority-info-item">
-        <div class="majority-info-item-title">2. Większość bezwzględna</div>
+        <div class="majority-info-item-title">1. Większość bezwzględna</div>
         <p>Głosów „za” jest więcej niż łącznie „przeciw” i „wstrzymujących się”, przy obecności co najmniej połowy posłów.</p>
         <ul>
           <li>Wybór Marszałka Sejmu i Wicemarszałków.</li>
@@ -741,7 +730,7 @@ function renderMajorityInfo() {
         </ul>
       </div>
       <div class="majority-info-item">
-        <div class="majority-info-item-title">3. Większość kwalifikowana</div>
+        <div class="majority-info-item-title">2. Większość kwalifikowana</div>
         <p>Wymagany jest określony ułamek ustawowej liczby 460 posłów.</p>
         <ul>
           <li>3/5 (276): m.in. odrzucenie weta Prezydenta RP, konstruktywne wotum nieufności.</li>
