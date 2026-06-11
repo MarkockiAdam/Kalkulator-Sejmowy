@@ -350,6 +350,39 @@
     height: auto;
   }
 
+  .majority-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: -4px 0 18px;
+    padding: 0 6px;
+  }
+
+  .majority-btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .majority-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .majority-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
   .show-results-btn {
     width: 100%;
     padding: 14px;
@@ -377,14 +410,86 @@
   }
 
   .below-threshold-note {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 16px;
-    padding: 8px;
-    background: var(--card);
+    margin-top: 20px;
+    padding: 12px 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .below-threshold-title {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .below-threshold-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .below-threshold-item {
+    font-size: 12px;
+    color: #7f1d1d;
+    background: var(--danger-light);
+    border: 1px solid #fecaca;
+    border-radius: 999px;
+    padding: 4px 8px;
+    line-height: 1.2;
+  }
+
+  .majority-info {
+    margin-top: 16px;
+    padding: 12px 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .majority-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .majority-info-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px;
+    background: #fff;
+  }
+
+  .majority-info-item-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .majority-info-item p {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin-bottom: 5px;
+  }
+
+  .majority-info-item ul {
+    margin: 0;
+    padding-left: 14px;
+    color: var(--text);
+  }
+
+  .majority-info-item li {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-bottom: 2px;
   }
 
   .method-note {
@@ -423,11 +528,13 @@
   <div class="results-section" id="resultsSection" style="display:none">
     <div class="results-header">
       <div class="section-label" style="margin-bottom:0">Wyniki</div>
-      <div class="total-seats" id="totalSeats">460 mandatów</div>
+      <div class="total-seats" id="totalSeats">460</div>
     </div>
     <div class="hemicycle-wrap" id="hemicycle"></div>
+    <div class="majority-controls" id="majorityControls"></div>
     <div id="resultsChart"></div>
     <div class="below-threshold-note" id="belowNote" style="display:none"></div>
+    <div class="majority-info" id="majorityInfo"></div>
   </div>
 
   <div class="method-note">
@@ -439,16 +546,26 @@
 const TOTAL_SEATS = 460;
 const PARTY_THRESHOLD = 5;
 const COALITION_THRESHOLD = 8;
+const MAJORITY_OPTIONS = [
+  { key: 'absolute', label: 'Bezwzględna', seats: 231 },
+  { key: 'threeFifths', label: '3/5', seats: 276 },
+  { key: 'twoThirds', label: '2/3', seats: 307 },
+  { key: 'off', label: 'Wyłącz', seats: null },
+];
 
 const PARTY_COLORS = {
   'PiS': '#263672',
+  'PIS': '#263672',
+  'KO': '#F58220',
   'Koalicja Obywatelska': '#F58220',
   'Konfederacja': '#1B1464',
+  'KKP': '#8B6914',
   'Konfederacja Korony Polskiej': '#8B6914',
   'Lewica': '#E53935',
   'Razem': '#7B1FA2',
   'PSL': '#4CAF50',
   'Trzecia Droga': '#2E7D32',
+  'PL2050': '#2E7D32',
   'Centrum': '#00838F',
 };
 
@@ -468,6 +585,8 @@ const DEFAULT_COLORS = [
 ];
 
 let colorIndex = 0;
+let selectedMajorityKey = 'absolute';
+let lastSortedResults = [];
 
 function getColor(name) {
   if (PARTY_COLORS[name]) return PARTY_COLORS[name];
@@ -475,15 +594,15 @@ function getColor(name) {
 }
 
 let parties = [
-  { name: 'PiS', pct: 30, coalition: false, color: PARTY_COLORS['PiS'] },
-  { name: 'Koalicja Obywatelska', pct: 25, coalition: false, color: PARTY_COLORS['Koalicja Obywatelska'] },
-  { name: 'Konfederacja', pct: 12, coalition: false, color: PARTY_COLORS['Konfederacja'] },
-  { name: 'Konfederacja Korony Polskiej', pct: 3, coalition: false, color: PARTY_COLORS['Konfederacja Korony Polskiej'] },
+  { name: 'KO', pct: 32, coalition: false, color: PARTY_COLORS['KO'] },
+  { name: 'PIS', pct: 24, coalition: false, color: PARTY_COLORS['PIS'] },
+  { name: 'Konfederacja', pct: 13, coalition: false, color: PARTY_COLORS['Konfederacja'] },
+  { name: 'KKP', pct: 8, coalition: false, color: PARTY_COLORS['KKP'] },
   { name: 'Lewica', pct: 6, coalition: false, color: PARTY_COLORS['Lewica'] },
-  { name: 'Razem', pct: 3, coalition: false, color: PARTY_COLORS['Razem'] },
-  { name: 'PSL', pct: 4, coalition: false, color: PARTY_COLORS['PSL'] },
-  { name: 'Trzecia Droga', pct: 5, coalition: true, color: PARTY_COLORS['Trzecia Droga'] },
-  { name: 'Centrum', pct: 2, coalition: false, color: PARTY_COLORS['Centrum'] },
+  { name: 'Razem', pct: 4, coalition: false, color: PARTY_COLORS['Razem'] },
+  { name: 'PSL', pct: 3, coalition: false, color: PARTY_COLORS['PSL'] },
+  { name: 'PL2050', pct: 1, coalition: false, color: PARTY_COLORS['PL2050'] },
+  { name: 'Centrum', pct: 1, coalition: false, color: PARTY_COLORS['Centrum'] },
 ];
 
 function dhondt(validParties, totalSeats) {
@@ -508,7 +627,6 @@ function dhondt(validParties, totalSeats) {
 
 function renderHemicycle(sorted) {
   const container = document.getElementById('hemicycle');
-  const majority = Math.floor(TOTAL_SEATS / 2) + 1;
 
   if (sorted.length === 0) { container.innerHTML = ''; return; }
 
@@ -558,21 +676,69 @@ function renderHemicycle(sorted) {
     currentAngle -= sweep;
   }
 
-  const majAngle = Math.PI - (majority / totalSeats) * Math.PI;
-  const mx1 = cx + (innerR - 6) * Math.cos(majAngle);
-  const my1 = cy - (innerR - 6) * Math.sin(majAngle);
-  const mx2 = cx + (outerR + 6) * Math.cos(majAngle);
-  const my2 = cy - (outerR + 6) * Math.sin(majAngle);
-  svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
-    stroke="var(--text)" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>`;
+  const selectedMajority = MAJORITY_OPTIONS.find(o => o.key === selectedMajorityKey);
+  const majoritySeats = selectedMajority?.seats;
+  if (majoritySeats && majoritySeats > 0 && majoritySeats <= totalSeats) {
+    const majAngle = Math.PI - (majoritySeats / totalSeats) * Math.PI;
+    const mx1 = cx + (innerR - 6) * Math.cos(majAngle);
+    const my1 = cy - (innerR - 6) * Math.sin(majAngle);
+    const mx2 = cx + (outerR + 6) * Math.cos(majAngle);
+    const my2 = cy - (outerR + 6) * Math.sin(majAngle);
+    svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
+      stroke="#ffffff" stroke-width="5" opacity="0.9"/>`;
+    svg += `<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}"
+      stroke="var(--text)" stroke-width="2.8" stroke-dasharray="6,3" opacity="0.95"/>`;
+  }
 
   svg += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" dominant-baseline="auto"
     fill="var(--text)" font-family="Inter,sans-serif" font-size="16" font-weight="700">${totalSeats}</text>`;
-  svg += `<text x="${cx}" y="${cy + 7}" text-anchor="middle" dominant-baseline="auto"
-    fill="var(--text-secondary)" font-family="Inter,sans-serif" font-size="9">mandatów</text>`;
-
   svg += '</svg>';
   container.innerHTML = svg;
+}
+
+function renderMajorityControls() {
+  const controls = document.getElementById('majorityControls');
+  controls.innerHTML = '';
+
+  MAJORITY_OPTIONS.forEach(option => {
+    const btn = document.createElement('button');
+    btn.className = 'majority-btn' + (selectedMajorityKey === option.key ? ' active' : '');
+    btn.textContent = option.seats ? `${option.label} (${option.seats})` : option.label;
+    btn.addEventListener('click', () => {
+      selectedMajorityKey = option.key;
+      renderMajorityControls();
+      if (lastSortedResults.length > 0) {
+        renderHemicycle(lastSortedResults);
+      }
+    });
+    controls.appendChild(btn);
+  });
+}
+
+function renderMajorityInfo() {
+  const info = document.getElementById('majorityInfo');
+  info.innerHTML = `
+    <div class="below-threshold-title">Rodzaje większości</div>
+    <div class="majority-info-list">
+      <div class="majority-info-item">
+        <div class="majority-info-item-title">1. Większość bezwzględna</div>
+        <p>Głosów „za” jest więcej niż łącznie „przeciw” i „wstrzymujących się”, przy obecności co najmniej połowy posłów.</p>
+        <ul>
+          <li>Wybór Marszałka Sejmu i Wicemarszałków.</li>
+          <li>Udzielenie wotum zaufania Radzie Ministrów.</li>
+          <li>Wybór członków TK i KRS oraz zgoda na referendum ogólnokrajowe.</li>
+        </ul>
+      </div>
+      <div class="majority-info-item">
+        <div class="majority-info-item-title">2. Większość kwalifikowana</div>
+        <p>Wymagany jest określony ułamek ustawowej liczby 460 posłów.</p>
+        <ul>
+          <li>3/5 (276): m.in. odrzucenie weta Prezydenta RP, konstruktywne wotum nieufności.</li>
+          <li>2/3 (307): m.in. zmiana Konstytucji RP i skrócenie kadencji Sejmu.</li>
+        </ul>
+      </div>
+    </div>
+  `;
 }
 
 function hideResults() {
@@ -621,11 +787,13 @@ function showResults() {
   const seats = validParties.length > 0 ? dhondt(validParties, TOTAL_SEATS) : new Map();
   const assignedSeats = Array.from(seats.values()).reduce((a, b) => a + b, 0);
 
-  document.getElementById('totalSeats').textContent = assignedSeats + ' / ' + TOTAL_SEATS + ' mandatów';
+  document.getElementById('totalSeats').textContent = assignedSeats + ' / ' + TOTAL_SEATS;
 
   const sorted = [...seats.entries()].sort((a, b) => b[1] - a[1]);
+  lastSortedResults = sorted;
 
   renderHemicycle(sorted);
+  renderMajorityControls();
 
   const chart = document.getElementById('resultsChart');
   chart.innerHTML = '';
@@ -659,15 +827,30 @@ function showResults() {
 
   const belowNote = document.getElementById('belowNote');
   if (belowParties.length > 0) {
-    const names = belowParties.map(p => {
+    belowNote.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'below-threshold-title';
+    title.textContent = 'Poniżej progu';
+    belowNote.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'below-threshold-list';
+
+    belowParties.forEach(p => {
       const t = p.coalition ? COALITION_THRESHOLD : PARTY_THRESHOLD;
-      return `${shortName(p.name)} (${p.pct}% < ${t}%)`;
-    }).join(', ');
+      const item = document.createElement('span');
+      item.className = 'below-threshold-item';
+      item.textContent = `${shortName(p.name)} (${p.pct}% < ${t}%)`;
+      list.appendChild(item);
+    });
+
+    belowNote.appendChild(list);
     belowNote.style.display = 'block';
-    belowNote.textContent = 'Poniżej progu: ' + names;
   } else {
     belowNote.style.display = 'none';
   }
+
+  renderMajorityInfo();
 
   document.getElementById('resultsSection').style.display = '';
   document.getElementById('showResultsBtn').style.display = 'none';
@@ -713,8 +896,16 @@ function render() {
   list.querySelectorAll('.pct-input').forEach(input => {
     input.addEventListener('input', (e) => {
       const idx = parseInt(e.target.dataset.idx);
-      const val = parseFloat(e.target.value) || 0;
-      parties[idx].pct = Math.min(100, Math.max(0, val));
+      const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+      const otherTotal = parties.reduce((sum, party, partyIdx) => (
+        partyIdx === idx ? sum : sum + party.pct
+      ), 0);
+      const maxForCurrent = Math.max(0, 100 - otherTotal);
+      const nextValue = Math.min(val, maxForCurrent);
+      parties[idx].pct = nextValue;
+      if (Math.abs(nextValue - val) > 0.0001) {
+        e.target.value = nextValue;
+      }
       hideResults();
       updateTotal();
     });
